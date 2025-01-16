@@ -1,77 +1,76 @@
 #include <iostream>
-#include <vector>
 #include <string>
-#include <cmath> // Untuk fungsi pow()
-#include <iomanip> // Untuk std::setw
+#include <sstream>
+#include <bitset>
+#include <vector>
 
-using namespace std;
+// Fungsi untuk mengonversi bilangan biner ke desimal
+int binaryToDecimal(const std::string &binary) {
+    return std::bitset<8>(binary).to_ulong();
+}
 
-// Fungsi untuk mengkonversi bilangan biner ke desimal
-int binaryToDecimal(string binary) {
-    int decimal = 0;
-    int length = binary.length();
-
-    // Iterasi setiap digit biner dari kanan ke kiri
-    for (int i = 0; i < length; i++) {
-        // Jika karakter pada posisi i adalah '1', tambahkan nilai desimalnya
-        if (binary[length - 1 - i] == '1') {
-            decimal += pow(2, i);
-        }
+// Fungsi untuk memproses input biner menjadi format IP
+std::string binaryToIP(const std::string &binary) {
+    if (binary.length() != 32) {
+        return "Input biner harus memiliki panjang 32 bit.";
     }
-    return decimal;
+
+    // Pisahkan string biner menjadi 4 bagian masing-masing 8 bit
+    std::string octet1 = binary.substr(0, 8);
+    std::string octet2 = binary.substr(8, 8);
+    std::string octet3 = binary.substr(16, 8);
+    std::string octet4 = binary.substr(24, 8);
+
+    // Konversi setiap bagian ke desimal
+    int decimal1 = binaryToDecimal(octet1);
+    int decimal2 = binaryToDecimal(octet2);
+    int decimal3 = binaryToDecimal(octet3);
+    int decimal4 = binaryToDecimal(octet4);
+
+    // Gabungkan hasil konversi menjadi format IP
+    return std::to_string(decimal1) + "." + std::to_string(decimal2) + "." + std::to_string(decimal3) + "." + std::to_string(decimal4);
 }
 
 int main() {
-    vector<vector<int>> ipAddresses; // Menyimpan array desimal dari 4 oktet IP
-    string ulang, binary;
-    
-    // Menambahkan data IP
+    std::string input;
+    std::vector<std::string> results; // Menyimpan semua hasil konversi
+
     do {
-        vector<int> ipAddress(4); // Menyimpan 4 oktet IP dalam bentuk desimal
-        cout << "\nMasukkan IP Address dalam format biner (8 bit per oktet, misalnya 11000000 untuk 192):\n";
-        
-        // Input biner untuk setiap oktet IP
-        for (int i = 0; i < 4; i++) {
-            cout << "Oktet " << i + 1 << ": ";
-            cin >> binary;
+        std::cout << "Masukkan bilangan biner 32 bit dengan format (8bit.8bit.8bit.8bit): ";
+        std::getline(std::cin, input);
 
-            // Memastikan input adalah biner 8 digit
-            if (binary.length() != 8 || binary.find_first_not_of("01") != string::npos) {
-                cout << "Input harus berupa angka biner 8 digit!\n";
-                return 1; // Menghentikan program jika input tidak valid
-            }
+        // Pisahkan input berdasarkan tanda titik
+        std::stringstream ss(input);
+        std::string octet1, octet2, octet3, octet4;
+        std::getline(ss, octet1, '.');
+        std::getline(ss, octet2, '.');
+        std::getline(ss, octet3, '.');
+        std::getline(ss, octet4, '.');
 
-            // Mengkonversi biner ke desimal dan menyimpan di vector
-            ipAddress[i] = binaryToDecimal(binary);
+        // Gabungkan input menjadi satu string tanpa tanda titik
+        std::string fullBinary = octet1 + octet2 + octet3 + octet4;
+
+        // Konversi ke alamat IP
+        results.push_back(binaryToIP(fullBinary));
+
+        // Tanya apakah ingin mengulang
+        char choice;
+        std::cout << "Apakah Anda ingin memasukkan biner lagi? (y/n): ";
+        std::cin >> choice;
+        std::cin.ignore(); // Menghapus newline dari buffer
+
+        if (choice == 'n' || choice == 'N') {
+            break;
         }
 
-        // Menyimpan alamat IP yang sudah dikonversi
-        ipAddresses.push_back(ipAddress);
+    } while (true);
 
-        cout << "Apakah Anda ingin memasukkan IP lagi? (ya/tidak): ";
-        cin >> ulang;
-
-    } while (ulang == "ya");
-
-    // Menampilkan hasil dalam format tabel yang rapi
-    cout << "\nData IP Address yang sudah dikonversi ke desimal:\n";
-    cout << string(60, '-') << endl; // Garis pemisah
-    cout << left << setw(15) << "Oktet 1" 
-          << setw(15) << "Oktet 2" 
-          << setw(15) << "Oktet 3" 
-          << setw(15) << "Oktet 4" 
-          << endl;
-    cout << string(60, '-') << endl; // Garis pemisah
-
-    for (const auto& ipAddress : ipAddresses) {
-        cout << setw(15) << ipAddress[0] 
-              << setw(15) << ipAddress[1] 
-              << setw(15) << ipAddress[2] 
-              << setw(15) << ipAddress[3] 
-              << endl;
+    // Tampilkan semua hasil akhir
+    std::cout << "Hasil konversi IP: " << std::endl;
+    for (const auto &ip : results) {
+        std::cout << ip << std::endl;
     }
 
-    cout << string(60, '-') << endl; // Garis pemisah
-
+    std::cout << "Program selesai." << std::endl;
     return 0;
 }
